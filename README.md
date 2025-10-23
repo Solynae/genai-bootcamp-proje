@@ -32,11 +32,12 @@ Projeyi klonlayın:
 
 
 
-Bash
+```bash
 
 
 
 git clone https://github.com/KULLANICI\_ADINIZ/REPO\_ADINIZ.git
+```
 
 (NOT: Yukarıdaki linki GitHub reponuzun linki ile değiştirin)
 
@@ -46,11 +47,13 @@ Gerekli kütüphaneleri yükleyin:
 
 
 
-Bash
+```bash
 
 
 
 pip install -r requirements.txt
+
+```
 
 .env dosyası oluşturun ve Google API anahtarınızı ekleyin:
 
@@ -62,19 +65,23 @@ Vektör veritabanını oluşturun (ilk çalıştırma için gereklidir):
 
 
 
-Bash
-
+```bash
 
 
 python build\_vector\_db.py
+
+```
 
 Streamlit uygulamasını başlatın:
 
 
 
-Bash
+```bash
 
 
 
 streamlit run app.py
+
+```
+
 
