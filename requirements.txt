@@ -1,16 +1,14 @@
 streamlit
-longchain
-langchain-google-genai
-langchain-core
-langchain-community
-sentence-transformers
 python-dotenv
 datasets
 
-# DEPLOY HATALARI İÇİN ÇÖZÜM PAKETLERİ:
-# Bu, chromadb'nin sunucuda kurulması için gereken pakettir:
+# --- LangChain Eko-sistemi (Hata Çözümü için En İyisi) ---
+# Modül hatasını çözmek için temel paketleri güncel ve ayrı ayrı belirtmek önemlidir.
+langchain-core
+langchain-community
+langchain-google-genai
+sentence-transformers
+
+# ChromaDB ve Streamlit Cloud Uyum Paketi (sqlite3 hatası için)
 pysqlite3-binary
-
-# chromadb'nin kendisi:
 chromadb
-
