@@ -8,7 +8,9 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain.schema.runnable import RunnablePassthrough
+from langchain.schema.runnable import RunnablePassthrough # Modül yolu doğru
+from datasets import load_dataset # Veri oluşturma için gerekli
+from langchain_core.documents import Document # Veri oluşturma için gerekli
 
 # .env dosyasını yükle
 load_dotenv()
@@ -16,24 +18,70 @@ load_dotenv()
 # Ayarlar
 DB_PATH = "./chroma_db_banka_sss"
 EMBEDDING_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
-# LLM_MODEL'ı gemini-pro yerine, gemini-2.5-flash veya gemini-pro olarak kullanın.
-LLM_MODEL = "gemini-2.5-flash" 
+LLM_MODEL = "gemini-2.5-flash" 
 
+# --- KRİTİK DEĞİŞİKLİK: Vektör Veritabanı Oluşturma Mantığı ---
+@st.cache_resource
+def build_vector_database_on_demand(db_path, model_name):
+    """
+    Vektör veritabanı mevcut değilse, build_vector_db.py'deki mantığı kullanarak oluşturur.
+    Streamlit Cloud'da veritabanının kaybolması durumunu ele almak için gereklidir.
+    """
+    # Veritabanı mevcutsa ve sağlam görünüyorsa tekrar oluşturma
+    if os.path.exists(db_path) and os.path.exists(os.path.join(db_path, "chroma-collections.parquet")):
+        # st.info("✅ Vektör veritabanı zaten mevcut. Tekrar oluşturulmuyor.")
+        return
+
+    st.info("🚨 Vektör veritabanı bulunamadı. Otomatik olarak oluşturuluyor...")
+    
+    # Veri Yükleme (build_vector_db.py'den kopyalanmıştır - sadece demo veri)
+    dataset = [
+        {'question': 'Kredi kartı başvurusu nasıl yapılır?', 'answer': 'Akbank müşterisiyseniz Akbank Mobil ve İnternet üzerinden, Akbank müşterisi değilseniz Akbank Mobil\'i indirerek görüntülü görüşme ile hızlıca başvuru yapabilirsiniz. Ayrıca 444 25 25 Müşteri İletişim Merkezi, Axess.com.tr ve tüm şubelerimizden de başvuru yapılabilir.'},
+        {'question': 'Döviz hesabı açmak için ne gerekiyor?', 'answer': 'Şubelerimizden veya mobil bankacılık üzerinden, kimlik belgenizle kolayca döviz hesabı açabilirsiniz. Ek bir belgeye gerek yoktur.'},
+        {'question': 'Hesap işletim ücreti alıyor musunuz?', 'answer': 'Belirli şartları sağlayan müşterilerimizden hesap işletim ücreti alınmamaktadır. Detaylı bilgi için sözleşmenizi inceleyin.'},
+        {'question': 'Şifremi nasıl değiştirebilirim?', 'answer': 'Şifrenizi Akbank Mobil veya Akbank İnternet üzerinden "Şifre İşlemleri" menüsünü kullanarak anında değiştirebilirsiniz.'},
+        {'question': 'Akbank mobil ile hangi işlemleri yapabilirim?', 'answer': 'Mobil uygulama ile para transferi, fatura ödemeleri, yatırım işlemleri ve yeni ürün başvuruları dahil birçok bankacılık işlemini şubeye gitmeden gerçekleştirebilirsiniz.'}
+    ]
+    
+    documents = []
+    for item in dataset:
+        combined_content = f"Soru: {item['question']}\nCevap: {item['answer']}"
+        doc = Document(
+            page_content=combined_content,
+            metadata={"source_question": item['question'], "source": "Demo Veri Seti"}
+        )
+        documents.append(doc)
+
+    # Embedding modelini yükle
+    embeddings = HuggingFaceEmbeddings(
+        model_name=model_name,
+        model_kwargs={'device': 'cpu'}
+    )
+
+    # Chroma veritabanı oluşturma ve kalıcı hale getirme
+    vectorstore = Chroma.from_documents(
+        documents=documents,
+        embedding=embeddings,
+        persist_directory=db_path
+    )
+    vectorstore.persist()
+    st.success("✅ Vektör veritabanı başarıyla oluşturuldu.")
+    return
+
+# --- load_rag_components fonksiyonu ---
 @st.cache_resource
 def load_rag_components():
     """RAG bileşenlerini yükler"""
     
-    # ⚠️ EK KONTROL: Veritabanı varlığını kontrol et
-    if not os.path.exists(DB_PATH):
-        st.error(f"❌ Hata: Vektör veritabanı klasörü ({DB_PATH}) bulunamadı.")
-        st.error("Lütfen önce 'python build_vector_db.py' komutunu çalıştırarak veritabanını oluşturun.")
-        st.stop()
-        
+    # ⚠️ 1. Kontrol: Veritabanını oluştur veya varlığını kontrol et
+    # Bu fonksiyon, Streamlit Cloud'da veritabanının bulunamaması sorununu çözer.
+    build_vector_database_on_demand(DB_PATH, EMBEDDING_MODEL_NAME)
+    
     st.info("🧠 RAG bileşenleri yükleniyor...")
     
     # Embedding modeli
     embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL_NAME, 
+        model_name=EMBEDDING_MODEL_NAME, 
         model_kwargs={'device': 'cpu'}
     )
     
@@ -41,7 +89,7 @@ def load_rag_components():
     vectorstore = Chroma(persist_directory=DB_PATH, embedding_function=embeddings)
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
     
-    # LLM Modeli Adı GÜNCELLENDİ (Hata veren ad yerine stabil ad kullanıldı)
+    # LLM Modeli
     llm = ChatGoogleGenerativeAI(model=LLM_MODEL, temperature=0.2)
     
     st.success("✅ RAG Bileşenleri Başarıyla Yüklendi.")
@@ -83,7 +131,7 @@ rag_chain = create_rag_chain(retriever, llm)
 if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.messages.append({
-        "role": "assistant", 
+        "role": "assistant", 
         "content": "Merhaba! Ben Akbank Sanal Asistan. Size finans ve bankacılık konularında nasıl yardımcı olabilirim?"
     })
 
@@ -108,7 +156,7 @@ if prompt := st.chat_input("Lütfen sorunuzu buraya yazın..."):
                 st.session_state.messages.append({"role": "assistant", "content": response})
             except Exception as e:
                 # Hata durumunda kullanıcıya bilgi ver
-                error_msg = f"Üzgünüm, Gemini API'den yanıt alınırken bir hata oluştu. Hata detayları: {e}"
+                error_msg = f"Üzgünüm, Gemini API'den yanıt alınırken bir hata oluştu. Lütfen GOOGLE_API_KEY'inizin doğru olduğundan emin olun. Hata: {e}"
                 st.markdown(error_msg)
                 st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
