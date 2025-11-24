@@ -131,7 +131,7 @@ rag_chain = create_rag_chain(retriever, llm)
 if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.messages.append({
-        "role": "assistant", 
+        "role": "assistant",
         "content": "Merhaba! Ben Akbank Sanal Asistan. Size finans ve bankacılık konularında nasıl yardımcı olabilirim?"
     })
 
@@ -169,5 +169,6 @@ st.sidebar.markdown("""
 - **Hesap işletim ücreti alıyor musunuz?**
 - **Dünyanın en yüksek dağı nedir?** (bilgim yok testi)
 """)
+
 
 
