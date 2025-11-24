@@ -81,7 +81,7 @@ def load_rag_components():
     
     # Embedding modeli
     embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL_NAME, 
+        model_name=EMBEDDING_MODEL_NAME,
         model_kwargs={'device': 'cpu'}
     )
     
@@ -169,4 +169,5 @@ st.sidebar.markdown("""
 - **Hesap işletim ücreti alıyor musunuz?**
 - **Dünyanın en yüksek dağı nedir?** (bilgim yok testi)
 """)
+
 
