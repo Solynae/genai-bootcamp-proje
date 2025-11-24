@@ -18,7 +18,7 @@ load_dotenv()
 # Ayarlar
 DB_PATH = "./chroma_db_banka_sss"
 EMBEDDING_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
-LLM_MODEL = "gemini-2.5-flash" 
+LLM_MODEL = "gemini-2.5-flash"
 
 # --- KRİTİK DEĞİŞİKLİK: Vektör Veritabanı Oluşturma Mantığı ---
 @st.cache_resource
@@ -169,3 +169,4 @@ st.sidebar.markdown("""
 - **Hesap işletim ücreti alıyor musunuz?**
 - **Dünyanın en yüksek dağı nedir?** (bilgim yok testi)
 """)
+
