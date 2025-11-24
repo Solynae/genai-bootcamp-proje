@@ -2,13 +2,14 @@ streamlit
 python-dotenv
 datasets
 
-# --- LangChain Eko-sistemi (Hata Çözümü için En İyisi) ---
-# Modül hatasını çözmek için temel paketleri güncel ve ayrı ayrı belirtmek önemlidir.
+# Ana LangChain Paketi (Tüm Bileşenleri Garanti Eder)
+langchain
+# LangChain Alt Bileşenleri
 langchain-core
 langchain-community
 langchain-google-genai
 sentence-transformers
 
-# ChromaDB ve Streamlit Cloud Uyum Paketi (sqlite3 hatası için)
+# ChromaDB ve Streamlit Cloud Uyum Paketi
 pysqlite3-binary
 chromadb
