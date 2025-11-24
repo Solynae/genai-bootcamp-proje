@@ -8,7 +8,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain.schema.runnable import RunnablePassthrough # Modül yolu doğru
+from langchain.schema.runnable import RunnablePassthrough
 from datasets import load_dataset # Veri oluşturma için gerekli
 from langchain_core.documents import Document # Veri oluşturma için gerekli
 
@@ -169,6 +169,7 @@ st.sidebar.markdown("""
 - **Hesap işletim ücreti alıyor musunuz?**
 - **Dünyanın en yüksek dağı nedir?** (bilgim yok testi)
 """)
+
 
 
 
